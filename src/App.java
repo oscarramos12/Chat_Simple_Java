@@ -1,3 +1,13 @@
+/*
+ * Oscar Ramos 19184
+ * Proyecto Cliente usando XMPP y Smack
+ * Referencias:
+ *  http://download.igniterealtime.org/smack/docs/3.0.1.beta1/javadoc/index.html?org/jivesoftware/smackx/filetransfer/package-summary.html
+ *  http://download.igniterealtime.org/smack/docs/3.0.1/javadoc/org/jivesoftware/smack/Roster.html 
+ *  https://www.tabnine.com/code/java/methods/org.jivesoftware.smackx.muc.MultiUserChat/create 
+ * 
+ */
+
 import java.io.File;
 import java.text.Normalizer.Form;
 import java.util.Collection;
@@ -63,31 +73,36 @@ public class App {
 
                         }
 
-                        //
+                        //Agregar contacto
                         else if(Integer.valueOf(opcion1) == 2){
+                            //Solicita datos
                             System.out.println("Ingrese el usuario a agreagar:");
                             String fren = reader.nextLine();
-
+                            //Obtiene el roster y agrega el contacto
                             Roster roster = con.getRoster();
                             roster.reload();
                             roster.createEntry(fren+"@alumchat.fun",fren,null);
                             System.out.println("Usuario Agregado");
                         }
+                        //Obtener Estado
                         else if(Integer.valueOf(opcion1) == 3){
+                            //Solicita datos
                             System.out.println("Ingrese el usuario:");
                             String estado = reader.nextLine();
                             estado = estado + "@alumchat.fun";
-
+                            //Obtiene el roster y busca el estado del usuario ingresado
                             Roster roster = con.getRoster();
                             roster.reload();
                             System.out.println(estado + " se encuentra: " +roster.getPresence(estado));
                         }
+                        //Chat Privado
                         else if(Integer.valueOf(opcion1) == 4){
+                            //Solicita datos
                             System.out.println("Ingrese el usuario:");
                             String chatUSR = reader.nextLine();
+                            //Crea el manejador de chat
                             Chat chat = con.getChatManager().createChat(chatUSR+"@alumchat.fun", new MessageListener() {
- 
-
+                                //Funcion que procesa y despliega el mensaje
                                 @Override
                                 public void processMessage(Chat chat, Message message) {
                                     if(message.getBody() != null){
@@ -96,6 +111,7 @@ public class App {
 
                                 }
                             });
+                            //Ciclo que espera recibir un input para enviar mensaje
                             while(true){
                                 String sendMSG = reader.nextLine();
                                 if("exit".equals(sendMSG)){
@@ -107,15 +123,17 @@ public class App {
                                 
                             }
                         }
+                        //Chat Grupal
                         else if(Integer.valueOf(opcion1) == 5){
-
+                            //Solicita datos
                             System.out.println("Ingrese el nombre del room:");
                             String room = reader.nextLine();
+                            //Se conecta al cuarto
                             MultiUserChat muc = new MultiUserChat(con,room+"@conference.alumchat.fun" );
                             muc.join(con.getUser());
 
+                            //Crea un listener para mostrar los mensajes del grupo
                             muc.addMessageListener(new PacketListener() {
-
 
                             @Override
                             public void processPacket(Packet packet) {
@@ -124,6 +142,8 @@ public class App {
                                 System.out.println("Mensaje: " + msg.getBody());
                             }   
                             });
+
+                            //Ciclo que espera un input para enviarlo como mensaje
                             while(con.isConnected()){
                                 String sendGMSG = reader.nextLine();
                                 if("exit".equals(sendGMSG)){
@@ -133,9 +153,9 @@ public class App {
                                     muc.sendMessage(sendGMSG);
                                 }
                             }
-                            
 
                         }
+                        //Mandar Archivos
                         else if(Integer.valueOf(opcion1) == 7){
                             System.out.println("Ingrese el nombre del usuario:");
                             String ftusr = reader.nextLine();
@@ -177,13 +197,19 @@ public class App {
 
 
                         }
+                        //Cambiar Estado
                         else if(Integer.valueOf(opcion1) == 8){
+                            //Solicita datos
                             System.out.println("Su nuevo estado es:\n1) Disponible\n2) No disponible");
                             String estado = reader.nextLine();
+
+                            //Manda un paquete con el nuevo estado
                             if(Integer.valueOf(estado) == 1){
                                 Presence pres = new Presence(Presence.Type.available);
                                 con.sendPacket(pres);
                             }
+
+                            //Manda un paquete con el nuevo estado
                             else if(Integer.valueOf(estado) == 2){
                                 Presence pres = new Presence(Presence.Type.unavailable);
                                 con.sendPacket(pres);
@@ -193,6 +219,7 @@ public class App {
                             }
                             
                         }
+                        //Cerrar Sesion
                         else if(Integer.valueOf(opcion1) == 9){
                             con.disconnect();
                             System.out.println("Sesion Terminada");
@@ -206,33 +233,37 @@ public class App {
                 }
             }
 
+            //Crear Cuenta
             else if(Integer.valueOf(opcion) == 2){
+                //Se conecta al servidor
                 XMPPConnection con = new XMPPConnection("alumchat.fun");
                 con.connect();
                 AccountManager manager = new AccountManager(con);
-
+                //Solicita datos
                 System.out.println("Ingrese su nombre de usuario:");
                 String usr = reader.nextLine();
                 System.out.println("Ingrese su contrasena");
                 String pass = reader.nextLine();
-
+                //Envia los datos para crear la cuenta
                 manager.createAccount(usr, pass);
                 System.out.println("Cuenta Creada");
                 con.disconnect();
 
             }
 
+            //Borrar Cuenta
             else if(Integer.valueOf(opcion) == 3){
                 try{
+                //Crea conexion con el servidor
                 XMPPConnection con = new XMPPConnection("alumchat.fun");
                 con.connect();
                 AccountManager manager = new AccountManager(con);
-
+                //Solicita datos
                 System.out.println("Ingrese su nombre de usuario:");
                 String usr = reader.nextLine();
                 System.out.println("Ingrese su contrasena");
                 String pass = reader.nextLine();
-
+                //Una vez se inicia la sesion se borra la cuenta desde la sesion
                 con.login(usr,pass);
                 manager.deleteAccount();
                 con.disconnect();
